@@ -1,0 +1,28 @@
+name: Java 8 Build and Deploy to OCP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: [DTS-Microservices]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java 8 environment
+        run: |
+          echo "Using Java 8 environment provided by runner"
+
+      - name: Build Java 8 application
+        run: |
+          ./gradlew clean build
+
+      - name: Deploy to OpenShift cluster
+        run: |
+          oc login --token=${{ secrets.OCP_TOKEN }} --server=${{ secrets.OCP_SERVER }}
+          oc project ${{ secrets.OCP_PROJECT }}
+          oc apply -f openshift/deployment.yaml
+          oc rollout status deployment/my-java8-app

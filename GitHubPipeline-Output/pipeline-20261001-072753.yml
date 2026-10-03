@@ -1,0 +1,105 @@
+name: Java8 CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Java 8 Application
+    runs-on: [self-hosted, linux, DTS-Microservices]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 8
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-8-jdk
+          java -version
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: java8-build
+          path: target/*.jar
+
+  sonarqube_scan:
+    name: SonarQube Scan and Quality Gate
+    runs-on: [self-hosted, linux, DTS-Microservices]
+    needs: build
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: java8-build
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run SonarQube Scanner
+        env:
+          SONAR_HOST_URL: https://sonarqube.adib.co.ae
+        run: |
+          export PATH=/opt/sonar-scanner-4.4.0.2170/bin:$PATH
+          sonar-scanner \
+            -Dsonar.projectKey=${{ github.repository }} \
+            -Dsonar.sources=. \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.host.url=$SONAR_HOST_URL
+
+      - name: Check SonarQube Quality Gate
+        run: |
+          # Wait for Quality Gate result
+          sleep 30
+          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=${{ github.repository }}" | jq -r '.projectStatus.status')
+          if [ "$STATUS" != "OK" ]; then
+            echo "Quality Gate failed with status: $STATUS"
+            exit 1
+          fi
+
+  build_and_deploy_ocp:
+    name: Build Image, Deploy to OCP
+    runs-on: [self-hosted, linux, DTS-Microservices]
+    needs: sonarqube_scan
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build Image with S2I
+        run: |
+          oc login --token=${{ secrets.OCP_TOKEN }} --server=${{ secrets.OCP_SERVER }}
+          oc project my-namespace
+          oc new-build --name=myapp --binary --image-stream=java:8
+          oc start-build myapp --from-dir=. --follow
+
+      - name: Deploy to OCP Namespace
+        run: |
+          oc rollout latest dc/myapp
+
+  image_scan_and_push:
+    name: Image Scan and Push to GitHub Packages
+    runs-on: [self-hosted, linux, DTS-Microservices]
+    needs: build_and_deploy_ocp
+    steps:
+      - name: Login to OCP
+        run: |
+          oc login --token=${{ secrets.OCP_TOKEN }} --server=${{ secrets.OCP_SERVER }}
+
+      - name: Save Image Locally
+        run: |
+          oc image mirror my-namespace/myapp:latest docker-daemon:myapp:latest
+
+      - name: Run Twistlock Scan
+        run: |
+          /home/DevOpsAdm/twistlock/twistcli images scan --address https://prismacloud-twistlock.apps.arosn.adib.co.ae --user ${{ secrets.TWISTLOCK_USER }} --password ${{ secrets.TWISTLOCK_PASS }} myapp:latest
+
+      - name: Tag and Push to GitHub Packages
+        run: |
+          docker tag myapp:latest github.adib.co.ae/ADIB-DevOps/myapp:latest
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login github.adib.co.ae -u ${{ github.actor }} --password-stdin
+          docker push github.adib.co.ae/ADIB-DevOps/myapp:latest
