@@ -17,5 +17,12 @@ spec:
     to:
       kind: ImageStreamTag
       name: github-pipeline-agent:latest
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
   triggers:
     - type: ConfigChange

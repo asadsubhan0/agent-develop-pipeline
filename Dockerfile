@@ -1,11 +1,11 @@
-FROM registry.access.redhat.com/ubi9/python-311:latest
+FROM registry.access.redhat.com/ubi9/ubi:latest
 
 USER 0
-RUN microdnf install -y git && microdnf clean all
+RUN dnf install -y git python3.11 python3.11-pip && dnf clean all
 
 WORKDIR /opt/app-root/src
 COPY requirements.txt ./requirements.txt
-RUN python -m pip install --no-cache-dir -r requirements.txt
+RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN chmod -R g=u /opt/app-root/src
 
@@ -15,4 +15,4 @@ ENV PORT=8080 \
 EXPOSE 8080
 
 USER 1001
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python3.11", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
