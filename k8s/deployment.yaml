@@ -27,7 +27,7 @@ spec:
               protocol: TCP
           env:
             - name: OPENAI_MODEL
-              value: gpt-4.1-mini
+              value: gpt-5.4
             - name: DEFAULT_REPO_URL
               value: https://github.com/Micro-DevOps/service-a
             - name: PUBLIC_AGENT_URL
@@ -64,5 +64,5 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: "1"
+              cpu: "500m"
               memory: 1Gi
