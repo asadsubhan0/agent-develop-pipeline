@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-pipeline-agent
+  namespace: dis-poc-514020
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"github-pipeline-agent:latest","namespace":"dis-poc-514020"},"fieldPath":"spec.template.spec.containers[?(@.name==\"github-pipeline-agent\")].image"}]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-pipeline-agent
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: github-pipeline-agent
+    spec:
+      containers:
+        - name: github-pipeline-agent
+          image: image-registry.openshift-image-registry.svc:5000/dis-poc-514020/github-pipeline-agent:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: OPENAI_MODEL
+              value: gpt-4.1-mini
+            - name: DEFAULT_REPO_URL
+              value: https://github.com/Micro-DevOps/service-a
+            - name: PUBLIC_AGENT_URL
+              value: https://github-pipeline-agent-dis-poc-514020.apps.ocp.systemsltd.local
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-agent-secrets
+                  key: OPENAI_API_KEY
+            - name: GITHUB_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-agent-secrets
+                  key: GITHUB_PAT
+            - name: A2A_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-agent-secrets
+                  key: A2A_BEARER_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi

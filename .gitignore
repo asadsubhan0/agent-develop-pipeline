@@ -2,3 +2,5 @@
 __pycache__/
 *.py[cod]
 .env
+k8s/secret.yaml
+k8s/secret.local.yaml

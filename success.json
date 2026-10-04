@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "tool": "ci.github_actions.github_pipeline",
+  "message": "GitHub Actions pipeline created successfully.",
+  "result": {
+    "repository": "https://github.com/org/reponame.git",
+    "branch": "agent/pipeline-development",
+    "pipeline_file": ".github/workflows/pipeline_name.yml",
+    "commit_sha": "a2cb67890f123456",
+    "commit_url": "https://github.com/org/reponame/commit/a2cb67890f123456",
+    "pull_request_url": "https://github.com/org/reponame/pull/45"
+  }
+}

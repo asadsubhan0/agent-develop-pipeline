@@ -13,6 +13,8 @@ ghes_version: 3.16.14
 runner_version: 2.321.0
 shared_repository: ADIB-DevOps/shared_libraries
 shared_ref_approved_immutable_sha: null
+pipeline_repository: https://github.com/Micro-DevOps/service-a
+pipeline_workflow_directory: .github/workflows
 jenkins_directory: Jenkins-pipelines
 github_output_directory: GitHub-pipelines
 max_context_characters: 450000

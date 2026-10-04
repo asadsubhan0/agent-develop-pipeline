@@ -1,0 +1,21 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: github-pipeline-agent
+  namespace: dis-poc-514020
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/asadsubhan0/agent-develop-pipeline.git
+      ref: release/1.0
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: github-pipeline-agent:latest
+  triggers:
+    - type: ConfigChange

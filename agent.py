@@ -1,8 +1,6 @@
 import json
 import os
 import re
-import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -13,7 +11,6 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent
 ENTERPRISE_FILE = ROOT / "enterprise-skill.yml"
-OUTPUT_DIR = ROOT / "GitHubPipeline-Output"
 load_dotenv(ROOT / ".env")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
 
@@ -135,43 +132,16 @@ def validate_workflow(content, settings):
     return errors
 
 
-def main():
-    try:
-        enterprise_context, settings = load_enterprise_context()
-    except (OSError, ValueError, yaml.YAMLError) as error:
-        print(f"Could not load enterprise context: {error}", file=sys.stderr)
-        return 1
+def generate_workflow(prompt):
+    if not isinstance(prompt, str) or not prompt.strip():
+        raise ValueError("A pipeline prompt is required.")
 
-    prompt = input("Describe the GitHub Actions pipeline you need: ").strip()
-    if not prompt:
-        print("A pipeline prompt is required.", file=sys.stderr)
-        return 1
-
-    try:
-        workflow = ask_openai(prompt, enterprise_context)
-    except RuntimeError as error:
-        print(error, file=sys.stderr)
-        return 1
-
+    enterprise_context, settings = load_enterprise_context()
+    workflow = ask_openai(prompt.strip(), enterprise_context)
     if not workflow:
-        print("OpenAI returned an empty response.", file=sys.stderr)
-        return 1
+        raise RuntimeError("OpenAI returned an empty response.")
 
     errors = validate_workflow(workflow, settings)
     if errors:
-        print("Generated output was not saved:", file=sys.stderr)
-        for error in errors:
-            print(f"- {error}", file=sys.stderr)
-        return 1
-
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    output_file = OUTPUT_DIR / f"pipeline-{timestamp}.yml"
-    output_file.write_text(workflow.rstrip() + "\n", encoding="utf-8")
-    print(f"Created {output_file.relative_to(ROOT)} using {OPENAI_MODEL}.")
-    print("Review the workflow before committing or running it.")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        raise ValueError("Generated workflow failed validation: " + "; ".join(errors))
+    return workflow.rstrip() + "\n"

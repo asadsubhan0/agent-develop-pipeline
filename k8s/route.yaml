@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: github-pipeline-agent
+  namespace: dis-poc-514020
+  annotations:
+    haproxy.router.openshift.io/timeout: 10m
+spec:
+  host: github-pipeline-agent-dis-poc-514020.apps.ocp.systemsltd.local
+  to:
+    kind: Service
+    name: github-pipeline-agent
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

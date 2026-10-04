@@ -1,0 +1,62 @@
+{
+  "provider": "valueops",
+  "discoveryMode": "agent-discovery-live",
+  "manifestDigest": "sha256:<manifest-digest>",
+  "tools": [
+    {
+      "agent": "ci",
+      "provider": "github",
+      "name": "github_pipeline",
+      "id": "ci.github.github_pipeline",
+      "description": "Generate, commit, and push a GitHub Actions pipeline to a repository branch.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "repo_url": {
+            "type": "string",
+            "description": "Optional HTTPS GitHub repository URL; defaults to Micro-DevOps/service-a."
+          },
+          "pipeline_name": {
+            "type": "string",
+            "description": "Workflow filename without folders; .yml is added."
+          },
+          "branch_name": {
+            "type": "string",
+            "description": "Target Git branch to commit and push the workflow to."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Pipeline requirements used to generate the GitHub Actions workflow."
+          },
+          "organization": {
+            "type": "string",
+            "description": "Optional GitHub organization or repository owner, used with repository."
+          },
+          "repository": {
+            "type": "string",
+            "description": "Optional GitHub repository name, used with organization."
+          },
+          "org_name": {
+            "type": "string",
+            "description": "Alias for organization."
+          },
+          "repo_name": {
+            "type": "string",
+            "description": "Alias for repository."
+          }
+        },
+        "required": [
+          "prompt",
+          "branch_name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}
