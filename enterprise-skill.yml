@@ -1,17 +1,13 @@
 # Enterprise Skills
 
-Instrcutions: 
+Instructions: 
   - This pipeline is for an air gapped environment, so don't use apt/yum install commands. All the required tools and binaries are there in the runners so use those.
   - Also while building the pipeline, if there are some concurrent steps/jobs need to be executed one after the other and they are using the same runner, than put them inside single job in different steps.
-  - Each pipeline you build should follow the basic steps like checkout code, build, sonar scan, building OCP image, deploying that image to OCP cluster, pushing image to github packages registry. 
+  - Each pipeline you build should follow the basic steps like checkout code, build, sonar scan, building OCP image, flyway database migration, deploying that image to OCP cluster, scanning image using prisma twistlock, tagging andpushing image to github packages registry. 
 
 
-organization: ADIB
-platform: GHES
-github_server_url: https://github.adib.co.ae
-ghes_version: 3.16.14
-runner_version: 2.321.0
-shared_repository: ADIB-DevOps/shared_libraries
+github_server_url: https://github.com
+shared_repository: DevOps/shared_libraries
 shared_ref_approved_immutable_sha: null
 pipeline_repository: https://github.com/Micro-DevOps/service-a
 pipeline_workflow_directory: .github/workflows
@@ -26,8 +22,8 @@ allowed_action_repositories:
   - actions/checkout@v3
   - actions/upload-artifact@v3
   - actions/download-artifact@v3
-  - ADIB-DevOps/vault-action@v2
-  - ADIB-DevOps/action-send-mail@v1
+  - DevOps/vault-action@v2
+  - DevOps/action-send-mail@v1
 block_tls_bypass: false
 block_secret_echo: true
 block_broad_workspace_delete: true
@@ -37,54 +33,37 @@ max_file_bytes: 250000
 # Services Endpoints and URLs
 
 sonarqube:
-  url: https://sonarqube.adib.co.ae
+  url: https://sonarqube.com
   scanner_home: /opt/sonar-scanner-4.4.0.2170
 vault:
-  url: https://azvault.adib.co.ae/
-  action: ADIB-DevOps/vault-action@v2
+  url: https://azvault.com
+  action: DevOps/vault-action@v2
   auth_method: token
   tls_verification_required: false
   ca_bundle: null
 registries:
-  jfrog_preprod: artifactory-preprod.adib.co.ae
-  jfrog_prod: artifactory-prod.adib.co.ae
-  github_packages: github.adib.co.ae
-  openshift_source: openshift-image-registry-public.apps.echannels.adib.co.ae
-  gradle_distribution: https://artifactory.adib.co.ae/artifactory/gradle-service/distributions/gradle-${gradle_version}-all.zip
+  github_packages: ghcr.io
+  gradle_distribution: https://ghcr.io/gradle-service/distributions/gradle-${gradle_version}-all.zip
+ocp:
+  api_url: https://api.ocp.systemsltd.local:6443
+  console_url: https://console-openshift-console.apps.ocp.systemsltd.local
 prisma:
-  api_base: https://prismacloud-twistlock.apps.arosn.adib.co.ae/api/v1
-fortify:
-  ssc_url: https://mp2dtsdapssc02.adib.co.ae/ssc
-ucv:
-  deployments_url: https://lp2dtsdapucv01.adib.co.ae/api/v1/deployments
-  tenant_id: 5ade13625558f2c6688d15ce
-  environments:
-    dev: c26f487a-d829-418c-be0e-353ed10708c2
-    sit: 7a115f90-f4e5-4181-9920-78b216bb4afc
-    mr: 7a115f90-f4e5-4181-9920-78b216bb4af32
-    pre-sit: null
-smtp:
-  host: smtp.adib.co.ae
-  port: 25
-  from: devops@adib.com
-  recipients: []
-  note: Original samples have different recipients; require operator mapping, do not silently choose one.
-
+  api_base: https://prismacloud-twistlock.com/api/v1
 
 # Runners
 
 Instructions: Only use below mentioned labels, don't use default labels like self-hosted, linux, x64, etc. for any job.
 
 Java8 & Java21-applications:
-  - runner_label: DTS-Microservices
+  - runner_label: JDK821-Microservices
     os: linux
 
 Java17-applications:
-  - runner_label: MS-JDK-17
+  - runner_label: JDK17-Microservices
     os: linux
 
 NodeJs-applications:
-  - runner_label: DTS-Microservices
+  - runner_label: Node-Microservices
     os: linux
 
 FlyWay-migrations:
@@ -93,21 +72,15 @@ FlyWay-migrations:
     cli-path: 
 
 SonarQube-scans:
-  - runner_label: DTS-Microservices, MS-JDK-17
+  - runner_label: JDK821-Microservices, JDK17-Microservices, Node-Microservices
     os: linux
 
 Twistlock-scans:
-  - runner_label: DTS-Microservices, MS-JDK-17
-    os: linux
-
-UCV-deployments:
-  - runner_label: DTS-Microservices, MS-JDK-17
+  - runner_label: JDK821-Microservices, JDK17-Microservices, Node-Microservices
     os: linux
 
 
-# CLI Paths
-
+# CLI paths for the tools installed in the runners, so that they can be used in the pipeline jobs.
 sonar-cli-path: /home/DevOpsAdm/sonar-scanner-8.0.1.6346-linux-x64/bin/sonar-scanner
 flyway-cli-path: /opt/flyway-9.1.6/flyway
 twistcli-path: /home/DevOpsAdm/twistlock/twistcli
-

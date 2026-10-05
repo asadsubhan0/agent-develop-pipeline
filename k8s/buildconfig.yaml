@@ -16,7 +16,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: github-pipeline-agent:latest
+      name: github-pipeline-agent:release-1.1
   resources:
     requests:
       cpu: "100m"

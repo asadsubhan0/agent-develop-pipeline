@@ -1,6 +1,6 @@
 {
   "status": "failure",
-  "tool": "ci.github_actions.github_pipeline",
+  "tool": "ci.github.github_pipeline",
   "message": "GitHub Actions pipeline not created.",
   "result": {}
 }

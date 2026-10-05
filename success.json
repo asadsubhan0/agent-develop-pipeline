@@ -1,6 +1,6 @@
 {
   "status": "success",
-  "tool": "ci.github_actions.github_pipeline",
+  "tool": "ci.github.github_pipeline",
   "message": "GitHub Actions pipeline created successfully.",
   "result": {
     "repository": "https://github.com/org/reponame.git",
