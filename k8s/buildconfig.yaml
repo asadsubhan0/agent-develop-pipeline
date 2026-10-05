@@ -8,7 +8,7 @@ spec:
     type: Git
     git:
       uri: https://github.com/asadsubhan0/agent-develop-pipeline.git
-      ref: release/1.0
+      ref: release/1.1
   strategy:
     type: Docker
     dockerStrategy:
